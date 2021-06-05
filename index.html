@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JAI~MA | Manga Reader</title>
+
+    <!-- site favicon -->
+    <link
+      rel="shortcut icon"
+      href="./assets/book-solid.svg"
+      type="image/x-icon"
+    />
+
+    <!-- bulma css -->
+    <link rel="stylesheet" href="./css/bulma.min.css" />
+
+    <!-- local css -->
+    <link rel="stylesheet" href="./css/local.css" />
+
+    <!-- font awesome for icons-->
+    <script
+      defer
+      src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"
+    ></script>
+
+    <!-- vuejs v3 -->
+    <script src="https://unpkg.com/vue@next"></script>
+  </head>
+  <body>
+    <!-- 
+      main vue instance mounts here
+    -->
+    <div id="app">
+      <!-- hero section to display the thing -->
+      <section class="hero is-light">
+        <!-- display webapp title -->
+        <div class="hero-body">
+          <div class="container">
+            <p class="title fontHeading">
+              <span class="icon-text">
+                <span class="icon">
+                  <i class="fas fa-book"></i>
+                </span>
+                <span>
+                  <abbr title="Just Another Implementation of the Mangadex API"
+                    >JAI~MA</abbr
+                  >
+                  | Manga Reader</span
+                >
+              </span>
+            </p>
+            <p class="subtitle fontMain">
+              <strong>J</strong>ust <strong>A</strong>nother
+              <strong>I</strong>mplementation of the <strong>M</strong>angadex
+              <strong>A</strong>PI
+            </p>
+          </div>
+        </div>
+        <!-- Hero footer: will stick at the bottom -->
+        <div class="hero-foot">
+          <nav class="tabs is-boxed">
+            <div class="container">
+              <ul class="fontHeading">
+                <li
+                  :class="{'is-active': activePages.search, tabActive: activePages.search}"
+                >
+                  <a id="tabSearch" @click="setActivePage">Search</a>
+                </li>
+                <li
+                  :class="{'is-active': activePages.about, tabActive: activePages.about}"
+                >
+                  <a id="tabAbout" @click="setActivePage">About</a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+      </section>
+
+      <!-- 
+        search section
+        should only appear when the search tab is active
+      -->
+      <section class="section" v-if="activePages.search">
+        <div class="container fontMain">
+          <div class="field has-addons">
+            <p class="control">
+              <span class="select is-dark">
+                <select v-model="searchBy">
+                  <option value="title">Title</option>
+                  <option value="name">Author</option>
+                </select>
+              </span>
+            </p>
+            <p class="control is-expanded">
+              <input
+                class="input is-dark fontMain"
+                type="text"
+                :placeholder="placeholder"
+                v-model="query"
+                @keyup.enter="executeSearch"
+                :class="{'is-danger': displayQueryError}"
+                spellcheck="false"
+              />
+            </p>
+            <p class="control">
+              <a
+                class="button is-dark"
+                :class="{'is-loading': isButtonLoading}"
+                @click="executeSearch"
+              >
+                <span class="icon">
+                  <i class="fas fa-search"></i>
+                </span>
+              </a>
+            </p>
+          </div>
+          <p class="help has-text-centered is-danger" v-if="displayQueryError">
+            {{errorMsg}}
+          </p>
+
+          <!-- progress bar to indicate loading -->
+          <progress
+            class="progress is-small is-dark"
+            max="100"
+            v-if="isButtonLoading"
+          >
+            15%
+          </progress>
+        </div>
+      </section>
+
+      <!-- 
+        search result section
+        display what was found
+      -->
+      <section class="section" v-if="activePages.search">
+        <!-- only show this division if there are actual search results -->
+        <div class="container" v-if="resultManga">
+          <!-- loop thru this card component to show search results -->
+          <div v-for="manga in resultManga">
+            <div class="card">
+              <div class="card-content">
+                <div class="columns">
+                  <!-- left column contains details -->
+                  <div class="column">
+                    <!-- manga title -->
+                    <span class="icon-text">
+                      <span class="icon">
+                        <i class="fas fa-book-open"></i>
+                      </span>
+                      <span>
+                        <p
+                          class="title is-4 fontHeading"
+                          v-html="manga.data.attributes.title.en"
+                        ></p>
+                      </span>
+                    </span>
+
+                    <br />
+                    <br />
+
+                    <!-- loop through all alt titles that can be displayed -->
+                    <span class="icon-text">
+                      <span class="icon">
+                        <i class="fas fa-bookmark"></i>
+                      </span>
+                      <span
+                        ><strong class="fontMain"
+                          >Alternative Titles</strong
+                        ></span
+                      >
+                    </span>
+                    <br />
+                    <div class="tags">
+                      <span
+                        class="tag is-warning fontMain"
+                        v-for="title in manga.data.attributes.altTitles"
+                        v-html="title.en"
+                      ></span>
+                    </div>
+
+                    <!-- loop through the tag field and display as tag element -->
+                    <span class="icon-text">
+                      <span class="icon">
+                        <i class="fas fa-tags"></i>
+                      </span>
+                      <span><strong class="fontMain">Tags</strong></span>
+                    </span>
+                    <br />
+                    <div class="tags">
+                      <span
+                        class="tag is-info fontMain"
+                        v-for="tag in manga.data.attributes.tags"
+                        >{{tag.attributes.name.en}}</span
+                      >
+                    </div>
+
+                    <!-- volume -->
+                    <div class="fontMain">
+                      <span class="icon-text">
+                        <span class="icon">
+                          <i class="fas fa-book"></i>
+                        </span>
+                        <span
+                          ><strong>Latest Volume </strong
+                          ><span v-if="manga.data.attributes.lastVolume"
+                            >{{manga.data.attributes.lastVolume}}</span
+                          >
+                          <span v-else>NA</span>
+                        </span>
+                      </span>
+                    </div>
+
+                    <!-- chapter -->
+                    <div class="fontMain">
+                      <span class="icon-text">
+                        <span class="icon">
+                          <i class="fas fa-bookmark"></i>
+                        </span>
+                        <span>
+                          <strong>Latest Chapter </strong
+                          ><span v-if="manga.data.attributes.lastChapter"
+                            >{{manga.data.attributes.lastChapter}}</span
+                          >
+                          <span v-else>NA</span>
+                        </span>
+                      </span>
+                    </div>
+
+                    <!-- year -->
+                    <div class="fontMain">
+                      <span class="icon-text">
+                        <span class="icon">
+                          <i class="fas fa-calendar"></i>
+                        </span>
+                        <span>
+                          <strong>Year </strong
+                          ><span v-if="manga.data.attributes.year"
+                            >{{manga.data.attributes.year}}</span
+                          >
+                          <span v-else>NA</span>
+                        </span>
+                      </span>
+                    </div>
+
+                    <!-- demographic -->
+                    <div class="fontMain">
+                      <span class="icon-text">
+                        <span class="icon"
+                          ><i class="fas fa-user-friends"></i
+                        ></span>
+                        <span>
+                          <strong>Publication Demographic </strong
+                          ><span
+                            v-if="manga.data.attributes.publicationDemographic"
+                            >{{manga.data.attributes.publicationDemographic}}</span
+                          >
+                          <span v-else>NA</span>
+                        </span>
+                      </span>
+                    </div>
+
+                    <!-- rating -->
+                    <div class="fontMain">
+                      <span class="icon-text">
+                        <span class="icon">
+                          <i class="fas fa-star"></i>
+                        </span>
+                        <span>
+                          <strong>Content Rating </strong
+                          ><span v-if="manga.data.attributes.contentRating"
+                            >{{manga.data.attributes.contentRating}}</span
+                          >
+                          <span v-else>NA</span>
+                        </span>
+                      </span>
+                    </div>
+
+                    <!-- status -->
+                    <div class="fontMain">
+                      <span class="icon-text">
+                        <span class="icon">
+                          <i class="fas fa-book-reader"></i>
+                        </span>
+                        <span>
+                          <strong>Status </strong
+                          ><span v-if="manga.data.attributes.status"
+                            >{{manga.data.attributes.status}}</span
+                          >
+                          <span v-else>NA</span>
+                        </span>
+                      </span>
+                    </div>
+
+                    <br />
+                    <br />
+
+                    <div class="buttons">
+                      <button class="button is-dark fontMain">
+                        <span class="icon">
+                          <i class="fab fa-readme"></i>
+                        </span>
+                        <span>Read Now</span>
+                      </button>
+
+                      <button class="button is-light fontMain">
+                        <span class="icon">
+                          <i class="fas fa-list-alt"></i>
+                        </span>
+                        <span>View Chapters</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- right column contains description -->
+                  <div class="column">
+                    <!-- conditional redering for when the manga does not contain any description -->
+                    <div
+                      class="is-size-7 fontMain notification"
+                      v-if="manga.data.attributes.description.en"
+                    >
+                      <strong class="fontMain">Description</strong><br /><br />
+
+                      <!-- 
+                        so apparently, mangadex's description for their content contains 
+                        html encoded characters so I have to set a div's innerHTML as the content so 
+                        that the page renders the specials characters correctly
+                      -->
+                      <div v-html="manga.data.attributes.description.en"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <br />
+          </div>
+        </div>
+      </section>
+
+      <!-- 
+        about section
+        should only be visible when the about tab is active
+      -->
+      <section class="section" v-if="activePages.about">
+        <div class="container fontMain">
+          <p class="title is-4 fontHeading">Things that I used</p>
+          <hr />
+
+          <p>It's not much, but it's honest work.</p>
+          <br />
+          <ul>
+            <li><a href="https://bulma.io" target="_blank">Bulma</a></li>
+            <li><a href="https://v3.vuejs.org/" target="_blank">Vue.js</a></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <script src="./js/index.js"></script>
+  </body>
+</html>

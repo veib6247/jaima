@@ -1,0 +1,17 @@
+/* 
+  import Roboto mono and Roboto Slab from google fonts
+*/
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto+Slab&display=swap");
+
+/* main font for content and descriptions */
+.fontMain {
+  font-family: "Roboto Mono", monospace;
+}
+
+/* font for headings */
+.fontHeading {
+  font-family: "Roboto Slab", serif;
+}
+.tabActive {
+  color: white;
+}

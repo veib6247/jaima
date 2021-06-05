@@ -1,4 +1,4 @@
 # jaima
-Just Another Implementation Mangadex API
+Just Another Implementation of the Mangadex API
 
 App: https://jaima.netlify.app

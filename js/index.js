@@ -111,7 +111,10 @@ const app = Vue.createApp({
       try {
         // start button loading animation by changing button state
         this.isButtonLoading = true;
-        // fetch from the API
+        /**
+         * This is only temporary
+         * will need to create serverless functions to do the API calls to mangadex
+         */
         const response = await fetch(
           `https://api.mangadex.org/manga?title=${query}`
         );

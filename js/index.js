@@ -116,7 +116,7 @@ const app = Vue.createApp({
          * will need to create serverless functions to do the API calls to mangadex
          */
         const response = await fetch(
-          `https://api.mangadex.org/manga?title=${query}`
+          `https://jaima.bryanolandres.xyz/submit_query.php?query=${query}`
         );
         // parse response into json
         const data = await response.json();

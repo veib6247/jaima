@@ -138,6 +138,27 @@ const app = Vue.createApp({
     },
 
     /**
+     * calls the netlify function for testing
+     */
+    async testFunction() {
+      try {
+        this.isButtonLoading = true;
+        // call netlify function to execute API request
+        const response = await fetch(
+          `./.netlify/functions/getMangaList?query=${this.query}`
+        );
+        // parse response into json
+        const data = await response.text();
+        // log reponse for observation
+        console.info(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        this.isButtonLoading = false;
+      }
+    },
+
+    /**
      * receives the name of the artist
      * @param {String} name
      */

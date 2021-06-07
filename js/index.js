@@ -117,10 +117,12 @@ const app = Vue.createApp({
          */
         const response = await fetch(
           // `https://api.mangadex.org/manga?title=${query}`
-          `./php/submit_query.php?query=${query}`
+          `./.netlify/functions/getMangaList?query=${query}`
         );
         // parse response into json
-        const data = await response.json();
+        const raw = await response.json();
+        // get the data object
+        const data = raw.data;
         // validate if search query yeilded any results
         if (data.results.length) {
           // store result in variable
@@ -133,27 +135,6 @@ const app = Vue.createApp({
         console.error(error);
       } finally {
         // reset button state to stop animation
-        this.isButtonLoading = false;
-      }
-    },
-
-    /**
-     * calls the netlify function for testing
-     */
-    async testFunction() {
-      try {
-        this.isButtonLoading = true;
-        // call netlify function to execute API request
-        const response = await fetch(
-          `./.netlify/functions/getMangaList?query=${this.query}`
-        );
-        // parse response into json
-        const data = await response.text();
-        // log reponse for observation
-        console.info(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
         this.isButtonLoading = false;
       }
     },

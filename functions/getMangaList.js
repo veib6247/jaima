@@ -1,42 +1,45 @@
 /**
  * thru netlify functions
- * this scrpt will accept a query string (manga title) and submit a get request to the mangadex API
+ * this scrpt will accept a query string (manga title) and submit a GET request to the mangadex API
  */
-exports.handler = async function (event, context) {
-  // mangadex endpoint
-  const URL = "https://api.mangadex.org/manga?title=";
-  // retrieve manga title
-  const mangaTitle = event.queryStringParameters.query;
-  // using the https native lib
-  const https = require("https");
+// using node-fetch to send GET request
+const fetch = require("node-fetch");
 
-  // var for the chonky data
-  let data = "";
+// mangadex endpoint
+const MANGADEX_ENDPOINT = "https://api.mangadex.org/manga?title=";
 
-  https
-    .get(`${URL}${mangaTitle}`, (response) => {
-      // handle data
-      response.on("data", (chunk) => {
-        data += chunk;
-      });
+/**
+ * Netlify requires this
+ * @param {Object} event
+ * @param {Object} context
+ * @returns
+ */
+exports.handler = async (event, context) => {
+  try {
+    // get the manga title from the query string
+    const query = event.queryStringParameters.query;
+
+    // run fetch
+    try {
+      // hitting the endpoint
+      const response = await fetch(`${MANGADEX_ENDPOINT}${query}`);
+      // parse json response
+      const data = await response.json();
+      // return to front end
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ data }),
+      };
+    } catch (error) {
       /**
-       * once the whole response has been received, return the result
+       * on error fetching data
        */
-      response.on("end", () => {
-        // console.log(typeof data);
-        // return the response
-        return {
-          statusCode: 200,
-          body: data,
-        };
-      });
-    })
-    .on("error", (err) => {
       return {
         statusCode: 500,
-        body: JSON.stringify({
-          error: err.message,
-        }),
+        body: JSON.stringify({ error: "Failed fetching data" }),
       };
-    });
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };

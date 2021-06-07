@@ -100,7 +100,7 @@
                 type="text"
                 :placeholder="placeholder"
                 v-model="query"
-                @keyup.enter="testFunction"
+                @keyup.enter="executeSearch"
                 :class="{'is-danger': displayQueryError}"
                 spellcheck="false"
               />
@@ -110,7 +110,7 @@
               <a
                 class="button is-dark"
                 :class="{'is-loading': isButtonLoading}"
-                @click="testFunction"
+                @click="executeSearch"
               >
                 <span class="icon">
                   <i class="fas fa-search"></i>

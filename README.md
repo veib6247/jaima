@@ -1,5 +1,7 @@
 # JAI~MA
+
 Just Another Implementation of the Mangadex API
 
 App: https://jaima.netlify.app
-Alt Link: https://jaima.bryanolandres.xyz/
+
+- Only search feature works for now, will implement more features in the future.

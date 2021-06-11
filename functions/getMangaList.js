@@ -15,31 +15,26 @@ const MANGADEX_ENDPOINT = "https://api.mangadex.org/manga?title=";
  * @returns
  */
 exports.handler = async (event, context) => {
+  // get the manga title from the query string
+  const query = event.queryStringParameters.query;
+  // run fetch
   try {
-    // get the manga title from the query string
-    const query = event.queryStringParameters.query;
-
-    // run fetch
-    try {
-      // hitting the endpoint
-      const response = await fetch(`${MANGADEX_ENDPOINT}${query}`);
-      // parse json response
-      const data = await response.json();
-      // return to front end
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ data }),
-      };
-    } catch (error) {
-      /**
-       * on error fetching data
-       */
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: "Failed fetching data" }),
-      };
-    }
+    // hitting the endpoint
+    const response = await fetch(`${MANGADEX_ENDPOINT}${query}`);
+    // parse json response
+    const data = await response.json();
+    // return to front end
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ data }),
+    };
   } catch (error) {
-    console.log(error);
+    /**
+     * on error fetching data
+     */
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Failed fetching data" }),
+    };
   }
 };
